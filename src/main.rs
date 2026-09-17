@@ -7,7 +7,7 @@ use std::error::Error;
 
 use chrono::{Local};
 
-use add_date_to_files::*;
+use add_timestamp_to_textfiles::*;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

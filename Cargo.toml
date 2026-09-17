@@ -1,5 +1,5 @@
 [package]
-name = "add_date_to_files"
+name = "add_timestamp_to_textfiles"
 version = "0.1.0"
 edition = "2024"
 
