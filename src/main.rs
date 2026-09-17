@@ -1,5 +1,6 @@
 //#![feature(fs_set_times)]
 use std::fs::{self, FileTimes};
+//use std::path::{self, Path};
 
 use std::env;
 use std::process;
@@ -22,38 +23,56 @@ fn main() {
 }
 
 fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents = fs::read_to_string(&config.file_path)?;
-    let modified = fs::metadata(&config.file_path)?
-        .modified()?;
-
-    let modified_datetime: DateTime<Local> = modified.into();
-
-    let datetime = modified_datetime
-        .format_localized("%A, %d. %B %Y, %H:%M", Locale::de_CH);
-
+    // Current date-time
     let now = Local::now()
         .format("%Y-%m-%d, %H:%M");
+    
+    // Check if path is a file or a folder, for both are accepted
+    let metadata = fs::metadata(&config.file_or_folder_path)?;
 
+    if metadata.is_file() {
+        //let modified = metadata.modified()?;
+        todo!();
+    } else if metadata.is_symlink() {
+        todo!();
+    }
+    else if metadata.is_dir() {
+        for file in fs::read_dir(&config.file_or_folder_path)? {
+            let file = file?;
+            let path = file.path();
 
-    let contents = format!("{} (*)\n\n{}\n\n\
-    (*) The date and time on the first line of this text file have been automatically injected based on the \
-    \"modified\" timestamp value as it was encountered on {}. The timestamp of the file was then reset \
-    to this value after this text has been injected. \
-    ", datetime, contents, now);
+            if path.is_dir() {
+                todo!();
+            }
 
-    // Overwrite file
-    fs::write(&config.file_path, contents)?;
+            let contents = fs::read_to_string(&path)?;
 
-    // Reset the modified timestamp to before the date-time-injection into the file
-    let reset = FileTimes::new()
-        .set_modified(modified);
-    fs::set_times(&config.file_path, reset)?;
+            let modified = fs::metadata(&path)?.modified()?;
+            let modified_datetime: DateTime<Local> = modified.into();
+            let datetime = modified_datetime
+                .format_localized("%A, %d. %B %Y, %H:%M", Locale::de_CH);
+
+            let contents_new = format!("{} (*)\n\n{}\n\n---\n\
+            (*) The date and time on the first line of this text file have been automatically injected based on the \
+            \"modified\" timestamp value as it was encountered on {}. The timestamp of the file was then reset \
+            to this value after this text has been injected. \
+            ", datetime, contents, now);
+
+            // Overwrite file
+            fs::write(&path, contents_new)?;
+
+            // Reset the modified timestamp to before the date-time-injection into the file
+            let reset = FileTimes::new()
+                .set_modified(modified);
+            fs::set_times(path, reset)?;
+        }
+    }
 
     Ok(())
 }
 
 struct Config {
-    file_path: String,
+    file_or_folder_path: String,
 }
 
 impl Config {
@@ -62,10 +81,10 @@ impl Config {
             return Err("not enough arguments");
         }
         
-        let file_path = args[1].clone();
+        let file_or_folder_path = args[1].clone();
 
         Ok(Config {
-            file_path,
+            file_or_folder_path,
         })
     }
 }
