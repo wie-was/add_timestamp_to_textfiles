@@ -11,5 +11,5 @@ Permanently write the *modified* timestamp of text-files into the files themselv
 Works on individual files as well as folders and unlimited subfolders. 
 
 ## Usage
-Download the binary in the release section, make it executable and then run `add_timestamp_to_textfiles <file or folder path>`
+Download the binary in the release section, make it executable and then run `./add_timestamp_to_textfiles <file or folder path>`
 If you want to compile from source you need Rust nightly. Set it up for this specific project by running the following command in the project directory: `rustup override set nightly`
