@@ -26,18 +26,58 @@ fn main() {
 fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // Current date-time
     let now = Local::now()
-        .format("%Y-%m-%d, %H:%M");
+        .format("%Y-%m-%d");
+
+    let mut counter: u32 = 0;
+    let mut err_counter: u32 = 0;
+    let mut dir_counter: u32 = 0;
+
     
     // Check if path is a file or a folder, for both are accepted
+    // This will already throw (and propagate) an error if the specified path does not exist
     let metadata = fs::metadata(&config.file_or_folder_path)?;
 
     if metadata.is_file() {
-        process_file(PathBuf::from(&config.file_or_folder_path), &now)?;
+        // Custom error handling and message
+        match process_file(
+            PathBuf::from(&config.file_or_folder_path),
+            &now,
+            &mut counter,
+            &mut err_counter
+        ) {
+            Ok(_) => match err_counter {
+                0 => println!("Number of files written: {counter}"),
+                _ => println!(
+                        "Total number of files processed: {}\n\
+                        Number of files written: {counter}\n\
+                        Number of skipped files: {err_counter}",
+                        counter + err_counter
+                    ),
+            },
+            Err(_) => { println!("Number of skipped files: {err_counter}"); },
+        };
     } else if metadata.is_symlink() {
         todo!();
     }
     else if metadata.is_dir() {
-        process_dir(&PathBuf::from(&config.file_or_folder_path), &now)?;
+        match process_dir(
+            &PathBuf::from(&config.file_or_folder_path),
+            &now,
+            &mut counter,
+            &mut err_counter,
+            &mut dir_counter
+        ) {
+            Ok(_) => match err_counter {
+                0 => println!("Number of files written: {counter} in {dir_counter} folder(s)"),
+                _ => println!(
+                        "Total number of files processed: {} in {dir_counter} folder(s)\n\
+                        Number of files written: {counter}\n\
+                        Number of skipped files: {err_counter}",
+                        counter + err_counter
+                    ),
+            },
+            Err(_) => { println!("Number of skipped files: {err_counter}"); },
+        };
     }
 
     Ok(())
