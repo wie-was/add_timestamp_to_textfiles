@@ -54,7 +54,12 @@ fn run(config: Config) -> Result<(), Box<dyn Error>> {
                         counter + err_counter
                     ),
             },
-            Err(_) => { println!("Number of skipped files: {err_counter}"); },
+            Err(_) => println!(
+                        "Total number of files processed: {}\n\
+                        Number of files written: {counter}\n\
+                        Number of skipped files: {err_counter}",
+                        counter + err_counter
+                    ),
         };
     } else if metadata.is_symlink() {
         todo!();
@@ -76,7 +81,12 @@ fn run(config: Config) -> Result<(), Box<dyn Error>> {
                         counter + err_counter
                     ),
             },
-            Err(_) => { println!("Number of skipped files: {err_counter}"); },
+            Err(_) => println!(
+                        "Total number of files processed: {}\n\
+                        Number of files written: {counter}\n\
+                        Number of skipped files: {err_counter}",
+                        counter + err_counter
+                    ),
         };
     }
 
